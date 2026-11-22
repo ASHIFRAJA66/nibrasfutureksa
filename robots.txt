@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /tag/
+Sitemap: https://nibrasfutureksa.com/sitemap.xml

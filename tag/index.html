@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Job card</title>
+<style>
+  :root { --ink:#1F2340; --soft:#6B7090; --line:#E6E8F2; --bg:#F3F4FA; --brand:#283593; --brand2:#3F51B5; --green:#1FAF55; --amber:#E65100; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { background:var(--bg); color:var(--ink); font-family:-apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", Tahoma, Arial, sans-serif; font-size:16px; line-height:1.45; -webkit-text-size-adjust:100%; }
+  .wrap { max-width:560px; margin:0 auto; padding:0 0 28px; }
+  header { background:linear-gradient(135deg, var(--brand), var(--brand2)); color:#fff; padding:22px 20px 26px; border-radius:0 0 26px 26px; text-align:center; }
+  header .en { font-size:20px; font-weight:700; letter-spacing:.2px; }
+  header .ar { font-size:19px; font-weight:700; margin-top:2px; }
+  header .addr { font-size:13.5px; opacity:.88; margin-top:8px; }
+  .acts { display:flex; gap:10px; margin:18px 4px 0; }
+  .btn { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:13px 10px; border-radius:14px; font-weight:700; font-size:15.5px; text-decoration:none; color:#fff; }
+  .btn svg { width:20px; height:20px; fill:currentColor; flex:none; }
+  .wa { background:var(--green); }
+  .call { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); }
+  .card { background:#fff; border-radius:20px; margin:14px 14px 0; padding:16px 18px; box-shadow:0 2px 10px rgba(31,35,64,.06); }
+  .no { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding-bottom:10px; margin-bottom:12px; border-bottom:1px solid var(--line); }
+  .no .big { font-size:26px; font-weight:800; color:var(--brand); direction:ltr; }
+  .lab { font-size:12px; font-weight:700; color:var(--soft); text-transform:uppercase; letter-spacing:.4px; display:flex; justify-content:space-between; gap:10px; }
+  .lab .a { text-transform:none; letter-spacing:0; font-size:13px; }
+  .val { font-size:17px; font-weight:600; margin-top:2px; overflow-wrap:anywhere; text-align:start; }
+  .row + .row { border-top:1px solid var(--line); margin-top:12px; padding-top:12px; }
+  .val a { color:var(--brand2); text-decoration:none; direction:ltr; unicode-bidi:embed; }
+  .dates { display:flex; flex-wrap:wrap; gap:10px; }
+  .date { flex:1 1 44%; background:var(--bg); border-radius:14px; padding:10px 12px; }
+  .date .d { font-size:17px; font-weight:700; direction:ltr; margin-top:2px; }
+  .date.out { background:#E8F7EE; } .date.out .d { color:#157A3B; }
+  h2 { margin:0 0 8px; font-size:13px; font-weight:800; color:var(--soft); text-transform:uppercase; letter-spacing:.4px; display:flex; justify-content:space-between; }
+  h2 .a { text-transform:none; letter-spacing:0; font-size:14px; }
+  ol { margin:0; padding:0; list-style:none; counter-reset:w; }
+  ol li { counter-increment:w; display:flex; gap:10px; align-items:flex-start; padding:9px 0; }
+  ol li + li { border-top:1px solid var(--line); }
+  ol li::before { content:counter(w); flex:none; width:26px; height:26px; border-radius:50%; background:#E8EAF6; color:var(--brand); font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; }
+  ol li span { flex:1; font-size:16.5px; font-weight:600; overflow-wrap:anywhere; text-align:start; }
+  .more { color:var(--soft); font-size:14px; padding-top:8px; }
+  .war { background:#FFF4E5; border:1px solid #FFD9A8; }
+  .war .val { color:var(--amber); font-size:19px; font-weight:800; }
+  .none { text-align:center; color:var(--soft); padding:60px 24px; }
+  footer { text-align:center; color:#9AA0BD; font-size:12px; margin-top:20px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="page"></div>
+<script>
+(function () {
+  "use strict";
+
+  // ---- unpack: base64 (link-safe) -> raw deflate -> text ----
+  function fromBase64(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    var bin = atob(s), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  function inflate(src) {
+    var pos = 0, buf = 0, cnt = 0, out = [];
+    function bits(n) {
+      while (cnt < n) { if (pos >= src.length) throw new Error("short"); buf |= src[pos++] << cnt; cnt += 8; }
+      var v = buf & ((1 << n) - 1); buf >>>= n; cnt -= n; return v;
+    }
+    function table(lengths) {
+      var count = [], symbol = [], offs = [], i;
+      for (i = 0; i < 16; i++) count[i] = 0;
+      for (i = 0; i < lengths.length; i++) count[lengths[i]]++;
+      count[0] = 0; offs[1] = 0;
+      for (i = 1; i < 15; i++) offs[i + 1] = offs[i] + count[i];
+      for (i = 0; i < lengths.length; i++) if (lengths[i]) symbol[offs[lengths[i]]++] = i;
+      return { count: count, symbol: symbol };
+    }
+    function decode(t) {
+      var code = 0, first = 0, index = 0;
+      for (var len = 1; len <= 15; len++) {
+        code |= bits(1);
+        var c = t.count[len];
+        if (code - c < first) return t.symbol[index + (code - first)];
+        index += c; first += c; first <<= 1; code <<= 1;
+      }
+      throw new Error("code");
+    }
+    var LB = [3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
+    var LE = [0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+    var DB = [1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
+    var DE = [0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+    function codes(lt, dt) {
+      for (;;) {
+        var s = decode(lt);
+        if (s < 256) { out.push(s); continue; }
+        if (s === 256) return;
+        s -= 257; if (s >= 29) throw new Error("len");
+        var len = LB[s] + bits(LE[s]);
+        var d = decode(dt); if (d >= 30) throw new Error("dist");
+        var dist = DB[d] + bits(DE[d]);
+        if (dist > out.length) throw new Error("far");
+        for (var k = 0; k < len; k++) out.push(out[out.length - dist]);
+      }
+    }
+    var last, i;
+    do {
+      last = bits(1);
+      var type = bits(2);
+      if (type === 0) {
+        buf = 0; cnt = 0;
+        var n = src[pos] | (src[pos + 1] << 8); pos += 4;
+        for (i = 0; i < n; i++) out.push(src[pos++]);
+      } else if (type === 1) {
+        var l = [];
+        for (i = 0; i < 144; i++) l[i] = 8;
+        for (; i < 256; i++) l[i] = 9;
+        for (; i < 280; i++) l[i] = 7;
+        for (; i < 288; i++) l[i] = 8;
+        var d5 = []; for (i = 0; i < 30; i++) d5[i] = 5;
+        codes(table(l), table(d5));
+      } else if (type === 2) {
+        var nlen = bits(5) + 257, ndist = bits(5) + 1, ncode = bits(4) + 4;
+        var order = [16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15], cl = [];
+        for (i = 0; i < 19; i++) cl[i] = 0;
+        for (i = 0; i < ncode; i++) cl[order[i]] = bits(3);
+        var ct = table(cl), all = [];
+        while (all.length < nlen + ndist) {
+          var sym = decode(ct), rep, prev = 0;
+          if (sym < 16) { all.push(sym); continue; }
+          if (sym === 16) { if (!all.length) throw new Error("rep"); prev = all[all.length - 1]; rep = 3 + bits(2); }
+          else if (sym === 17) rep = 3 + bits(3);
+          else rep = 11 + bits(7);
+          while (rep--) all.push(prev);
+        }
+        codes(table(all.slice(0, nlen)), table(all.slice(nlen, nlen + ndist)));
+      } else throw new Error("type");
+    } while (!last);
+    return new Uint8Array(out);
+  }
+
+  function utf8(bytes) {
+    if (window.TextDecoder) return new TextDecoder("utf-8").decode(bytes);
+    var s = ""; for (var i = 0; i < bytes.length; i++) s += "%" + ("0" + bytes[i].toString(16)).slice(-2);
+    return decodeURIComponent(s);
+  }
+
+  function read() {
+    var h = location.hash.replace(/^#/, "");
+    if (h.length < 4 || h.charAt(0) !== "1") return null;
+    var text = utf8(inflate(fromBase64(h.slice(1))));
+    var d = { work: [] };
+    text.split("\n").forEach(function (line) {
+      var at = line.indexOf("=");
+      if (at !== 1) return;
+      var k = line.charAt(0), v = line.slice(2).trim();
+      if (!v) return;
+      if (k === "-") d.work.push(v); else d[k] = v;
+    });
+    return d.n ? d : null;
+  }
+
+  // ---- draw ----
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function label(en, ar) {
+    var l = el("div", "lab");
+    l.appendChild(el("span", "", en));
+    var a = el("span", "a", ar); a.dir = "rtl"; l.appendChild(a);
+    return l;
+  }
+  function row(parent, en, ar, value, phone) {
+    if (!value) return;
+    var r = el("div", "row");
+    r.appendChild(label(en, ar));
+    var v = el("div", "val", value); v.dir = "auto";
+    if (phone && phone.indexOf("*") >= 0) { v.appendChild(document.createTextNode("  ")); var m = el("span", "", phone); m.dir = "ltr"; m.style.unicodeBidi = "embed"; v.appendChild(m); }
+    else if (phone) {
+      v.appendChild(document.createTextNode("  "));
+      var a = el("a", "", phone); a.href = "tel:" + phone.replace(/[^0-9+]/g, ""); v.appendChild(a);
+    }
+    r.appendChild(v);
+    parent.appendChild(r);
+  }
+  function icon(path) {
+    var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("viewBox", "0 0 24 24");
+    var p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", path); s.appendChild(p);
+    return s;
+  }
+  var WA = "M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.2 8.2 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.2-.32a8.2 8.2 0 0 1-1.26-4.38c.01-4.54 3.7-8.24 8.25-8.24M8.53 7.33c-.16 0-.43.06-.66.31-.22.25-.87.86-.87 2.07 0 1.22.89 2.39 1 2.56.14.17 1.76 2.67 4.25 3.73.59.27 1.05.42 1.41.53.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18s.21-1.07.15-1.18c-.07-.1-.23-.16-.48-.27-.25-.14-1.47-.74-1.69-.82-.23-.08-.37-.12-.56.12-.16.25-.64.81-.78.97-.15.17-.29.19-.53.07-.26-.13-1.06-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.12-.24-.01-.39.11-.5.11-.11.27-.29.37-.44.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.11-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43-.14 0-.3-.01-.47-.01";
+  var PH = "M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z";
+
+  function draw(d) {
+    var page = document.getElementById("page");
+    document.title = "Job card #" + d.n + (d.c ? " - " + d.c : "");
+
+    var head = el("header");
+    if (d.c) head.appendChild(el("div", "en", d.c));
+    if (d.a) { var ar = el("div", "ar", d.a); ar.dir = "rtl"; head.appendChild(ar); }
+    if (d.d) { var ad = el("div", "addr", d.d); ad.dir = "auto"; head.appendChild(ad); }
+    var m = (d.m || "").replace(/[^0-9]/g, "");
+    if (m) {
+      var acts = el("div", "acts");
+      var wa = el("a", "btn wa"); wa.href = "https://wa.me/" + m + "?text=" + encodeURIComponent("Job card #" + d.n);
+      wa.appendChild(icon(WA)); wa.appendChild(el("span", "", "WhatsApp"));
+      var call = el("a", "btn call"); call.href = "tel:+" + m;
+      call.appendChild(icon(PH)); call.appendChild(el("span", "", "Call"));
+      acts.appendChild(wa); acts.appendChild(call); head.appendChild(acts);
+    }
+    page.appendChild(head);
+
+    var c1 = el("div", "card");
+    var no = el("div", "no");
+    no.appendChild(label("Job card", "بطاقة عمل"));
+    no.firstChild.style.flex = "1";
+    no.appendChild(el("div", "big", "#" + d.n));
+    c1.appendChild(no);
+    row(c1, "Customer", "العميل", d.u, d.p);
+    row(c1, "Machine", "المعدة", d.k);
+    row(c1, "Problem", "المشكلة", d.b);
+    page.appendChild(c1);
+
+    var dates = [["Received", "تاريخ الاستلام", d.i, ""], ["Expected ready", "موعد الجاهزية", d.r, ""], ["Finished", "الانتهاء", d.f, ""], ["Delivered", "تاريخ التسليم", d.o, "out"]]
+      .filter(function (x) { return !!x[2]; });
+    if (dates.length) {
+      var c2 = el("div", "card"), box = el("div", "dates");
+      dates.forEach(function (x) {
+        var one = el("div", "date " + x[3]);
+        one.appendChild(label(x[0], x[1]));
+        one.appendChild(el("div", "d", x[2]));
+        box.appendChild(one);
+      });
+      c2.appendChild(box); page.appendChild(c2);
+    }
+
+    if (d.work.length || d.x) {
+      var c3 = el("div", "card"), h = el("h2");
+      h.appendChild(el("span", "", "Work done"));
+      var ha = el("span", "a", "الأعمال المنفذة"); ha.dir = "rtl"; h.appendChild(ha);
+      c3.appendChild(h);
+      var ol = el("ol");
+      d.work.forEach(function (w) { var li = el("li"); var s = el("span", "", w); s.dir = "auto"; li.appendChild(s); ol.appendChild(li); });
+      c3.appendChild(ol);
+      if (d.x) c3.appendChild(el("div", "more", "+ " + d.x + " more  ·  ask the workshop for the full job card"));
+      page.appendChild(c3);
+    }
+
+    if (d.w) {
+      var c4 = el("div", "card war");
+      c4.appendChild(label("Warranty", "الضمان"));
+      var wv = el("div", "val", d.w); wv.dir = "auto"; c4.appendChild(wv);
+      page.appendChild(c4);
+    }
+
+    page.appendChild(el("footer", "", "Mizan · ميزان"));
+  }
+
+  var data = null;
+  try { data = read(); } catch (e) { data = null; }
+  if (data) draw(data);
+  else {
+    var none = el("div", "none");
+    none.appendChild(el("div", "", "Scan the QR code on a machine tag to see its job card."));
+    var na = el("div", "", "امسح رمز QR الموجود على بطاقة المعدة لعرض بطاقة العمل."); na.dir = "rtl"; na.style.marginTop = "8px";
+    none.appendChild(na);
+    document.getElementById("page").appendChild(none);
+  }
+})();
+</script>
+</body>
+</html>
