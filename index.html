@@ -263,6 +263,55 @@
   </div>
 </section>
 
+<section id="request" class="alt">
+  <style>
+    #request .rq { max-width:720px; margin:26px auto 0; background:#fff; border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:0 10px 30px rgba(20,23,28,.06); display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    #request .rq label { display:block; font-size:13px; font-weight:700; color:var(--steel); margin-bottom:6px; }
+    #request .rq input, #request .rq select, #request .rq textarea { width:100%; font:inherit; font-size:16px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--paper); color:var(--ink); }
+    #request .rq input:focus, #request .rq select:focus, #request .rq textarea:focus { outline:2px solid var(--amber); border-color:var(--amber); background:#fff; }
+    #request .rq .full { grid-column:1 / -1; }
+    #request .rq textarea { min-height:96px; resize:vertical; }
+    #request .rq button { border:0; cursor:pointer; font:inherit; font-weight:800; font-size:17px; width:100%; justify-content:center; }
+    #request .rq .err { color:#C62828; font-weight:700; font-size:14px; display:none; }
+    @media (max-width:640px) { #request .rq { grid-template-columns:1fr; padding:16px; } }
+  </style>
+  <div class="wrap">
+    <div class="kicker">طلب صيانة</div>
+    <h2>أرسل طلب صيانة في دقيقة</h2>
+    <p class="sub">اكتب نوع المعدة والعطل، وسيُفتح واتساب برسالة جاهزة ترسلها لنا. لا يُحفظ أي شيء على الموقع.</p>
+    <form class="rq" id="rqForm" novalidate>
+      <div><label for="rqName">الاسم أو اسم الشركة</label><input id="rqName" autocomplete="name" maxlength="60"></div>
+      <div><label for="rqType">نوع المعدة</label><select id="rqType"><option value=""></option><option>حفّار</option><option>شيول</option><option>بوكلين / باك هو</option><option>مولّد كهرباء</option><option>محرك</option><option>بستم هيدروليك</option><option>أخرى</option></select></div>
+      <div class="full"><label for="rqMake">الماركة والموديل (مثال: CAT 320)</label><input id="rqMake" maxlength="60"></div>
+      <div class="full"><label for="rqProb">ما العطل؟</label><textarea id="rqProb" maxlength="400"></textarea></div>
+      <div class="full"><label for="rqWhere">أين المعدة الآن؟</label><select id="rqWhere"><option>في موقع العمل</option><option>سأحضرها للورشة</option></select></div>
+      <div class="full err" id="rqErr">اكتب نوع المعدة والعطل أولاً.</div>
+      <div class="full"><button type="submit" class="btn b-wa"><svg><use href="#i-wa"/></svg><span>أرسل عبر واتساب</span></button></div>
+    </form>
+  </div>
+  <script>
+  (function () {
+    var L = ["طلب صيانة", "الاسم", "المعدة", "الماركة / الموديل", "العطل", "مكان المعدة"];
+    var f = document.getElementById("rqForm");
+    if (!f) return;
+    function v(id) { return (document.getElementById(id).value || "").replace(/\s+/g, " ").trim(); }
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var type = v("rqType"), prob = v("rqProb"), err = document.getElementById("rqErr");
+      if (!type || !prob) { err.style.display = "block"; return; }
+      err.style.display = "none";
+      var lines = ["*" + L[0] + "*"];
+      if (v("rqName")) lines.push(L[1] + ": " + v("rqName"));
+      lines.push(L[2] + ": " + type);
+      if (v("rqMake")) lines.push(L[3] + ": " + v("rqMake"));
+      lines.push(L[4] + ": " + prob);
+      lines.push(L[5] + ": " + v("rqWhere"));
+      window.open("https://wa.me/966503699627?text=" + encodeURIComponent(lines.join("\n")), "_blank", "noopener");
+    });
+  })();
+  </script>
+</section>
+
 <section id="contact" class="contact">
   <div class="wrap">
     <div>

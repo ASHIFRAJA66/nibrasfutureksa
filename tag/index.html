@@ -199,7 +199,12 @@
 
   function draw(d) {
     var page = document.getElementById("page");
-    document.title = "Job card #" + d.n + (d.c ? " - " + d.c : "");
+    // z: "" job card, "q" quotation, "r" receipt, "f" refund. A plain number gets a # in front.
+    var kind = d.z || "";
+    var names = { "": ["Job card", "بطاقة عمل"], q: ["Quotation", "عرض سعر"], r: ["Receipt", "سند قبض"], f: ["Refund", "سند إرجاع"] };
+    var nm = names[kind] || names[""];
+    var shown = /^[0-9]/.test(d.n) ? "#" + d.n : d.n;
+    document.title = nm[0] + " " + shown + (d.c ? " - " + d.c : "");
 
     var head = el("header");
     if (d.c) head.appendChild(el("div", "en", d.c));
@@ -208,7 +213,7 @@
     var m = (d.m || "").replace(/[^0-9]/g, "");
     if (m) {
       var acts = el("div", "acts");
-      var wa = el("a", "btn wa"); wa.href = "https://wa.me/" + m + "?text=" + encodeURIComponent("Job card #" + d.n);
+      var wa = el("a", "btn wa"); wa.href = "https://wa.me/" + m + "?text=" + encodeURIComponent(nm[0] + " " + shown);
       wa.appendChild(icon(WA)); wa.appendChild(el("span", "", "WhatsApp"));
       var call = el("a", "btn call"); call.href = "tel:+" + m;
       call.appendChild(icon(PH)); call.appendChild(el("span", "", "Call"));
@@ -218,16 +223,17 @@
 
     var c1 = el("div", "card");
     var no = el("div", "no");
-    no.appendChild(label("Job card", "بطاقة عمل"));
+    no.appendChild(label(nm[0], nm[1]));
     no.firstChild.style.flex = "1";
-    no.appendChild(el("div", "big", "#" + d.n));
+    no.appendChild(el("div", "big", shown));
     c1.appendChild(no);
     row(c1, "Customer", "العميل", d.u, d.p);
     row(c1, "Machine", "المعدة", d.k);
     row(c1, "Problem", "المشكلة", d.b);
     page.appendChild(c1);
 
-    var dates = [["Received", "تاريخ الاستلام", d.i, ""], ["Expected ready", "موعد الجاهزية", d.r, ""], ["Finished", "الانتهاء", d.f, ""], ["Delivered", "تاريخ التسليم", d.o, "out"]]
+    var paper = kind === "r" || kind === "f";
+    var dates = [[paper ? "Date" : "Received", paper ? "التاريخ" : "تاريخ الاستلام", d.i, ""], ["Expected ready", "موعد الجاهزية", d.r, ""], ["Finished", "الانتهاء", d.f, ""], ["Delivered", "تاريخ التسليم", d.o, "out"]]
       .filter(function (x) { return !!x[2]; });
     if (dates.length) {
       var c2 = el("div", "card"), box = el("div", "dates");
@@ -242,14 +248,25 @@
 
     if (d.work.length || d.x) {
       var c3 = el("div", "card"), h = el("h2");
-      h.appendChild(el("span", "", "Work done"));
-      var ha = el("span", "a", "الأعمال المنفذة"); ha.dir = "rtl"; h.appendChild(ha);
+      h.appendChild(el("span", "", paper ? "For job cards" : kind === "q" ? "Work offered" : "Work done"));
+      var ha = el("span", "a", paper ? "عن بطاقات العمل" : kind === "q" ? "الأعمال المعروضة" : "الأعمال المنفذة"); ha.dir = "rtl"; h.appendChild(ha);
       c3.appendChild(h);
       var ol = el("ol");
       d.work.forEach(function (w) { var li = el("li"); var s = el("span", "", w); s.dir = "auto"; li.appendChild(s); ol.appendChild(li); });
       c3.appendChild(ol);
       if (d.x) c3.appendChild(el("div", "more", "+ " + d.x + " more  ·  ask the workshop for the full job card"));
       page.appendChild(c3);
+    }
+
+    // Money: only on a link printed on the customer's own paper (job card, quotation, receipt), never on a machine tag.
+    if (d.e || d.t || d.g || d.l) {
+      var c5 = el("div", "card");
+      row(c5, kind === "f" ? "Paid back" : "Received now", kind === "f" ? "المبلغ المردود" : "المبلغ المستلم", d.e ? d.e + " SAR" : "");
+      row(c5, "Paid by", "طريقة الدفع", d.y === "Bank" ? "Bank / بنك" : d.y === "Cash" ? "Cash / نقدًا" : "");
+      row(c5, "Total", "الإجمالي", d.t ? d.t + " SAR" : "");
+      row(c5, "Paid", "المدفوع", d.g ? d.g + " SAR" : "");
+      row(c5, "Balance", "المتبقي", d.l ? d.l + " SAR" : "");
+      page.appendChild(c5);
     }
 
     if (d.w) {

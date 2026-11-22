@@ -263,6 +263,55 @@
   </div>
 </section>
 
+<section id="request" class="alt">
+  <style>
+    #request .rq { max-width:720px; margin:26px auto 0; background:#fff; border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:0 10px 30px rgba(20,23,28,.06); display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    #request .rq label { display:block; font-size:13px; font-weight:700; color:var(--steel); margin-bottom:6px; }
+    #request .rq input, #request .rq select, #request .rq textarea { width:100%; font:inherit; font-size:16px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--paper); color:var(--ink); }
+    #request .rq input:focus, #request .rq select:focus, #request .rq textarea:focus { outline:2px solid var(--amber); border-color:var(--amber); background:#fff; }
+    #request .rq .full { grid-column:1 / -1; }
+    #request .rq textarea { min-height:96px; resize:vertical; }
+    #request .rq button { border:0; cursor:pointer; font:inherit; font-weight:800; font-size:17px; width:100%; justify-content:center; }
+    #request .rq .err { color:#C62828; font-weight:700; font-size:14px; display:none; }
+    @media (max-width:640px) { #request .rq { grid-template-columns:1fr; padding:16px; } }
+  </style>
+  <div class="wrap">
+    <div class="kicker">Repair request</div>
+    <h2>Send a repair request in one minute</h2>
+    <p class="sub">Write the machine and the problem. WhatsApp opens with a ready message for you to send. Nothing is saved on this website.</p>
+    <form class="rq" id="rqForm" novalidate>
+      <div><label for="rqName">Your name or company</label><input id="rqName" autocomplete="name" maxlength="60"></div>
+      <div><label for="rqType">Machine type</label><select id="rqType"><option value=""></option><option>Excavator</option><option>Wheel loader</option><option>Backhoe loader</option><option>Generator</option><option>Engine</option><option>Hydraulic cylinder</option><option>Other</option></select></div>
+      <div class="full"><label for="rqMake">Make and model (e.g. CAT 320)</label><input id="rqMake" maxlength="60"></div>
+      <div class="full"><label for="rqProb">What is the problem?</label><textarea id="rqProb" maxlength="400"></textarea></div>
+      <div class="full"><label for="rqWhere">Where is the machine now?</label><select id="rqWhere"><option>On site</option><option>I will bring it to the workshop</option></select></div>
+      <div class="full err" id="rqErr">Please write the machine type and the problem first.</div>
+      <div class="full"><button type="submit" class="btn b-wa"><svg><use href="#i-wa"/></svg><span>Send on WhatsApp</span></button></div>
+    </form>
+  </div>
+  <script>
+  (function () {
+    var L = ["Repair request", "Name", "Machine", "Make / model", "Problem", "Machine location"];
+    var f = document.getElementById("rqForm");
+    if (!f) return;
+    function v(id) { return (document.getElementById(id).value || "").replace(/\s+/g, " ").trim(); }
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var type = v("rqType"), prob = v("rqProb"), err = document.getElementById("rqErr");
+      if (!type || !prob) { err.style.display = "block"; return; }
+      err.style.display = "none";
+      var lines = ["*" + L[0] + "*"];
+      if (v("rqName")) lines.push(L[1] + ": " + v("rqName"));
+      lines.push(L[2] + ": " + type);
+      if (v("rqMake")) lines.push(L[3] + ": " + v("rqMake"));
+      lines.push(L[4] + ": " + prob);
+      lines.push(L[5] + ": " + v("rqWhere"));
+      window.open("https://wa.me/966503699627?text=" + encodeURIComponent(lines.join("\n")), "_blank", "noopener");
+    });
+  })();
+  </script>
+</section>
+
 <section id="contact" class="contact">
   <div class="wrap">
     <div>
