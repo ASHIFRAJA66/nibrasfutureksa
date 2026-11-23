@@ -280,3 +280,4 @@ footer .legal { border-top:1px solid rgba(255,255,255,.08); padding:18px 0 26px;
 .wk.wide a { aspect-ratio:1.53; overflow:hidden; }
 .wk.wide a img { width:100%; height:100%; object-fit:cover; }
 .wk { display:flex; flex-direction:column; }
+.photo { height:auto; }
