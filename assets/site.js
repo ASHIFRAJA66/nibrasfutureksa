@@ -102,8 +102,8 @@
     var done = function () {
       pending--;
       if (pending === 0) {
-        var empty = document.getElementById("ga-empty");
-        if (empty && shown > 0) empty.hidden = true;
+        var sec = document.getElementById("ba-section");
+        if (sec && shown > 0) sec.hidden = false;
       }
     };
     Array.prototype.forEach.call(slots, function (fig) {
