@@ -281,3 +281,109 @@ footer .legal { border-top:1px solid rgba(255,255,255,.08); padding:18px 0 26px;
 .wk.wide a img { width:100%; height:100%; object-fit:cover; }
 .wk { display:flex; flex-direction:column; }
 .photo { height:auto; }
+
+/* ================= motion (transform / opacity only, no layout work) ================= */
+@keyframes rise { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:none; } }
+@keyframes drop { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:none; } }
+@keyframes pop { 0% { opacity:0; transform:scale(.4); } 70% { opacity:1; transform:scale(1.12); } 100% { opacity:1; transform:scale(1); } }
+@keyframes ring { from { opacity:.65; transform:scale(1); } to { opacity:0; transform:scale(1.75); } }
+@keyframes stripe { from { transform:translateX(0); } to { transform:translateX(62.225px); } }
+@keyframes stripe-sm { from { transform:translateX(0); } to { transform:translateX(50.912px); } }
+@keyframes shine { from { transform:translateX(-130%) skewX(-20deg); } to { transform:translateX(230%) skewX(-20deg); } }
+
+/* 1. hero text rises in, one line after another */
+.hero .wrap > *, .page-hero .wrap > * { animation:rise .7s cubic-bezier(.2,.7,.2,1) backwards; }
+.hero .wrap > :nth-child(2), .page-hero .wrap > :nth-child(2) { animation-delay:.1s; }
+.hero .wrap > :nth-child(3), .page-hero .wrap > :nth-child(3) { animation-delay:.2s; }
+.hero .wrap > :nth-child(4), .page-hero .wrap > :nth-child(4) { animation-delay:.3s; }
+.hero .wrap > :nth-child(5), .page-hero .wrap > :nth-child(5) { animation-delay:.4s; }
+.facts > div { animation:rise .6s ease backwards; }
+.facts > div:nth-child(1) { animation-delay:.5s; } .facts > div:nth-child(2) { animation-delay:.58s; }
+.facts > div:nth-child(3) { animation-delay:.66s; } .facts > div:nth-child(4) { animation-delay:.74s; }
+
+/* 2. the yellow-black safety stripe moves slowly */
+.page-hero { overflow:hidden; }
+.hero::after { inset:auto 0 0 -63px; animation:stripe 3.2s linear infinite; }
+.page-hero::after { inset:auto 0 0 -51px; animation:stripe-sm 3.2s linear infinite; }
+
+/* 3. blocks appear as you scroll to them (classes are added by site.js) */
+.anim .rv { opacity:0; transform:translateY(24px); }
+.anim .rv.in { opacity:1; transform:none; transition:opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+.anim .rv.in.d1 { transition-delay:.08s; } .anim .rv.in.d2 { transition-delay:.16s; } .anim .rv.in.d3 { transition-delay:.24s; }
+.anim .step.rv.in::before { animation:pop .45s .3s backwards; }
+.anim .rv.in .ticks li::before { animation:pop .4s backwards; }
+.anim .rv.in .ticks li:nth-child(2)::before { animation-delay:.08s; } .anim .rv.in .ticks li:nth-child(3)::before { animation-delay:.16s; }
+.anim .rv.in .ticks li:nth-child(4)::before { animation-delay:.24s; } .anim .rv.in .ticks li:nth-child(5)::before { animation-delay:.32s; }
+.anim .rv.in .ticks li:nth-child(n+6)::before { animation-delay:.4s; }
+
+/* 4. header gets a shadow once the page is scrolled */
+.top { transition:background .25s ease, box-shadow .25s ease; }
+.top.scrolled { background:rgba(14,16,20,.98); box-shadow:0 10px 30px rgba(0,0,0,.28); }
+
+/* 5. thin reading-progress line at the very top */
+.prog { position:fixed; top:0; inset-inline:0; height:3px; z-index:60; background:var(--amber); transform:scaleX(0); transform-origin:left center; pointer-events:none; }
+html[dir="rtl"] .prog { transform-origin:right center; }
+
+/* 6. WhatsApp button pulse   7. green "open now" dot pulse */
+.float a { position:relative; animation:pop .5s .7s backwards; }
+.float .f-call { animation-delay:.85s; }
+.float .f-wa::after { content:""; position:absolute; inset:0; border-radius:50%; border:2px solid var(--green); animation:ring 2.4s ease-out infinite; pointer-events:none; }
+.status .dot { position:relative; }
+.status.open .dot::after { content:""; position:absolute; inset:0; border-radius:50%; background:var(--green); animation:ring 2s ease-out infinite; }
+
+/* 8. pictures zoom gently under the pointer */
+.svc .in { position:relative; z-index:1; background:#fff; }
+.svc .photo, .wk img { transition:transform .6s cubic-bezier(.2,.7,.2,1); }
+.svc:hover .photo { transform:scale(1.06); }
+.wk a { overflow:hidden; }
+.wk:hover img { transform:scale(1.05); }
+.iconpic svg { transition:transform .5s ease; }
+.svc:hover .iconpic svg { transform:scale(1.12) rotate(8deg); }
+
+/* 9. mobile menu slides down   10. FAQ answers slide open */
+.nav.open { animation:drop .25s ease backwards; }
+.faq details { transition:border-color .2s ease, box-shadow .2s ease; }
+.faq details[open] { border-color:var(--amber); box-shadow:0 10px 26px rgba(20,23,28,.07); }
+.faq details[open] p { animation:drop .3s ease backwards; }
+.faq summary::after { transition:transform .25s ease; }
+.faq details[open] summary::after { transform:rotate(180deg); }
+.faq summary:hover { color:#8A6500; }
+
+/* small touches */
+.btn { position:relative; overflow:hidden; }
+.b-wa::before, .b-call::before { content:""; position:absolute; top:0; bottom:0; left:0; width:45%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.38), transparent); transform:translateX(-130%) skewX(-20deg); pointer-events:none; }
+.b-wa:hover::before, .b-call:hover::before { animation:shine .75s ease; }
+.btn:active { transform:translateY(0) scale(.98); }
+.mark svg { transition:transform .6s cubic-bezier(.2,.7,.2,1); }
+.brand:hover .mark svg { transform:rotate(60deg); }
+.go, .more-link { display:inline-block; transition:transform .2s ease; }
+.svc .go { display:block; }
+.svc:hover .go, .more-link:hover { transform:translateX(5px); }
+html[dir="rtl"] .svc:hover .go, html[dir="rtl"] .more-link:hover { transform:translateX(-5px); }
+.ico { transition:transform .25s ease; }
+a.card:hover .ico { transform:rotate(-6deg) scale(1.07); }
+.chip { transition:transform .15s ease, box-shadow .15s ease; }
+.chip:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(20,23,28,.18); }
+.doc, .step { transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.doc:hover, .step:hover { transform:translateY(-3px); box-shadow:0 12px 28px rgba(20,23,28,.08); border-color:#D5D9E0; }
+.form input, .form select, .form textarea { transition:border-color .15s ease, box-shadow .15s ease, background .15s ease; }
+.form input:focus, .form select:focus, .form textarea:focus { box-shadow:0 0 0 4px rgba(245,179,1,.18); }
+footer a, .side .links a { transition:transform .15s ease, color .15s ease; }
+footer .fgrid a:hover, .side .links a:hover { transform:translateX(3px); }
+html[dir="rtl"] footer .fgrid a:hover, html[dir="rtl"] .side .links a:hover { transform:translateX(-3px); }
+.lang, .nav a { transition:background .15s ease, color .15s ease; }
+@media (min-width:1021px) {
+  .nav a { position:relative; }
+  .nav a::after { content:""; position:absolute; inset-inline:11px; bottom:3px; height:2px; border-radius:2px; background:var(--amber); transform:scaleX(0); transition:transform .22s ease; }
+  .nav a:hover::after, .nav a[aria-current="page"]::after { transform:scaleX(1); }
+}
+
+/* visitors who switched animations off on their device get a still page */
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
+  .anim .rv { opacity:1; transform:none; }
+  .prog { display:none; }
+}
+@media print { .rv { opacity:1 !important; transform:none !important; } .prog { display:none; } }
+.hero .wrap > .facts { animation:none; }
+@media (max-width:640px) { .top .wrap { gap:10px; } .brand { min-width:0; } .brand .bt { overflow:hidden; text-overflow:ellipsis; } }

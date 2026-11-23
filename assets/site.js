@@ -13,6 +13,57 @@
     });
   }
 
+  /* ---------- motion: header shadow, progress line, reveal on scroll ---------- */
+  var root = document.documentElement, topBar = document.querySelector(".top");
+  var calm = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var bar = null, ticking = false;
+  if (!calm) {
+    bar = document.createElement("div");
+    bar.className = "prog";
+    bar.setAttribute("aria-hidden", "true");
+    document.body.appendChild(bar);
+  }
+  function onScroll() {
+    ticking = false;
+    var y = window.pageYOffset || root.scrollTop || 0;
+    if (topBar) topBar.classList[y > 24 ? "add" : "remove"]("scrolled");
+    if (bar) {
+      var h = root.scrollHeight - window.innerHeight;
+      bar.style.transform = "scaleX(" + (h > 0 ? Math.min(1, y / h) : 0).toFixed(4) + ")";
+    }
+  }
+  window.addEventListener("scroll", function () {
+    if (!ticking) { ticking = true; (window.requestAnimationFrame || setTimeout)(onScroll); }
+  }, { passive: true });
+  onScroll();
+
+  if (!calm && "IntersectionObserver" in window) {
+    root.classList.add("anim");
+    var GRID = ".svc, .card, .step, .wk, .ba, .doc, .faq details";
+    var picks = document.querySelectorAll("main .head-row, main .kicker, main h2, main .sub, main .chips, main .also, main .note2, main .form, main .info, main .map, main .empty, main .coverimg, main .block, main .side > *, main .svc, main .card, main .step, main .wk, main .ba, main .doc, main .faq details");
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var el = en.target;
+        io.unobserve(el);
+        el.classList.add("in");
+        setTimeout(function () { el.classList.remove("rv", "in", "d1", "d2", "d3"); }, 1300);
+      });
+    }, { rootMargin: "0px 0px -6% 0px", threshold: 0.04 });
+    var vh = window.innerHeight || 800;
+    Array.prototype.forEach.call(picks, function (el) {
+      if (el.closest(".hero, .page-hero")) return;            // these have their own entrance
+      if (el.parentElement && el.parentElement.closest(".rv")) return; // a parent already animates
+      if (!el.hidden && el.getBoundingClientRect().top < vh) return;   // already on screen: leave it alone
+      el.classList.add("rv");
+      if (el.matches(GRID) && el.parentElement) {
+        var i = Array.prototype.indexOf.call(el.parentElement.children, el) % 4;
+        if (i) el.classList.add("d" + i);
+      }
+      io.observe(el);
+    });
+  }
+
   /* ---------- hide pictures that fail to load ---------- */
   Array.prototype.forEach.call(document.querySelectorAll("img.photo"), function (img) {
     function bad() { img.classList.add("broken"); }
